@@ -12,6 +12,12 @@ import detectron2.data.transforms as T
 from detectron2.data.detection_utils import transform_keypoint_annotations
 from detectron2.structures import polygons_to_bitmask
 
+try:
+    import cv2  # noqa
+except ImportError:
+    # OpenCV is an optional dependency at the moment
+    pass
+
 
 class MultiModalAugInput(T.AugInput):
 
@@ -98,6 +104,16 @@ class MultiModalTransform(Transform):
                 " COCO-style RLE as a dict.".format(type(segm))
             )
         return np.asarray(mask[:, :, None], dtype=np.uint8, order='F')
+
+    @staticmethod
+    def _to_polygons(mask):
+        # This conversion comes from D4809743 and D5171122,
+        # when Mask-RCNN was first developed.
+        contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[
+            -2
+        ]
+        polygons = [c.reshape(-1).tolist() for c in contours if len(c) >= 3]
+        return polygons
 
 
 class MultiModalAugmentation(T.Augmentation):

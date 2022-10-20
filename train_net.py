@@ -124,7 +124,7 @@ class Trainer(DefaultTrainer):
                     T.FixedSizeCrop(crop_size=(image_size, image_size)),
                     T.RandomFlip(horizontal=True)]
         copy_paste_aug = CopyPasteAugmentation(dataset=dataset, image_format=cfg.INPUT.FORMAT, pre_augs=pre_augs)
-        augs = [color_aug]
+        augs = pre_augs + [copy_paste_aug]
         mapper = MultiModalDatasetMapper(cfg, augmentations=augs, is_train=True)
         return build_detection_train_loader(cfg, mapper=mapper)
 
